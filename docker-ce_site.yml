@@ -1,0 +1,6 @@
+- name: install docker-ce
+  hosts: 
+    - master
+  become: yes
+  roles:
+    - docker-ce

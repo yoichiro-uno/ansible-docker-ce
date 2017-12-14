@@ -1,0 +1,226 @@
+---
+- name: Gather facts
+  setup:
+  register: _facts
+
+- debug: var=_facts
+
+- block:
+  - name: Install dependencies
+    yum:
+      name: "{{item}}"
+      state: present
+    with_items:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+
+  - name: Add docer-ce repo
+    shell: bash -lc "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+    register: _install_docker_repo
+
+  - name: Enable edge and test version
+    shell: bash -lc "yum-config-manager --enable {{item}}"
+    with_items:
+      - docker-ce-edge
+      - docker-ce-test
+    when: _install_docker_repo.rc == 0
+
+  - name: Update OS
+    yum:
+      name: "*"
+      state: latest
+
+  - name: install docker
+    yum:
+     name: docker-ce
+     state: present
+
+  - name: start docker
+    systemd: 
+      name: docker
+      enabled: yes
+      state: started
+
+  when: "ansible_distribution == 'CentOS'"
+
+- block:
+  - name: Update OS
+    apt:
+      upgrade: yes
+      update_cache: yes
+      cache_valid_time: 86400
+
+  - name: Add Docker's official GPG Key
+    shell: bash -lc "curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -"
+
+  - name: Install dependencies
+    apt:
+      name: "{{item}}"
+      state: latest
+    with_items:
+      - apt-transport-https
+      - ca-certificates
+      - curl 
+      - gnupg2 
+      - software-properties-common   
+ 
+  - block:
+    - name: Add repositories
+#      shell: bash -lc 'echo "deb [arch=armhf] https://download.docker.com/linux/debian/dists/jessie/stable/binary-armhf/Packages" | tee /etc/apt/sources.list.d/docker.list'
+      shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo raspbian-jessie testing" | tee /etc/apt/sources.list.d/docker.list'
+      when: _facts.ansible_facts.ansible_lsb.description | match("jessie")
+
+    - name: Check if Docker(RP) is installed
+      stat:
+        path: /usr/bin/docker
+      register: _docker_exe
+      ignore_errors: True
+     
+#    - debug: var=_docker_exe     
+   
+    - name: Install Docker(RP)
+      shell: bash -lc "curl -sSL https://get.docker.com | sh" 
+      when: "_docker_exe.stat.exists=='false'"
+
+    when: _facts.ansible_facts.ansible_lsb.description | match("^Raspbian")
+
+  - block:
+    - name: Add repositories
+      shell: bash -lc 'echo "deb [arch=armhf] https://download.docker.com/linux/debian \
+       $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list'
+
+    - name: Install Docker CE
+      apt:
+        name: docker-ce
+        state: latest
+#      update_cache: yes
+    when: _facts.ansible_facts.ansible_lsb.description | match("^Debian")
+
+  - name: Start Docker
+    systemd:
+      name: docker
+      state: started
+
+  - name: Verify Docker instalation
+    shell: bash -lc "docker run hypriot/armhf-hello-world"
+    register: _docker_instalation
+
+#  - debug: var=_docker_instalation
+
+  - debug: var={{InstallDockerCompose}}
+
+  - block:
+#    - name: Stop Docker
+#      systemd:
+#        name: docker
+#        state: stopped
+
+#    - name: Check /etc/init.d/docker existance
+#      stat: 
+#        path: /etc/init.d/docker
+#      register: _initfile_exist
+#
+#    - name: Rename to Bak
+#      command: mv /etc/init.d/docker /etc/init.d/docker.bak
+#      when: _initfile_exist.stat.exists
+
+    - name: Setup Docker Compose for RP
+      shell: bash -lc "curl -sSL https://packagecloud.io/install/repositories/Hypriot/Schatzkiste/script.deb.sh | bash"
+
+#    - name: Install dependencies for Docker Compose
+#      apt:
+#        name: docker-hypriot
+#        state: latest
+#        update_cache: yes
+  
+    - name: Install DockerCompose
+      apt:
+        name: docker-compose
+        state: latest
+#        update_cache: yes
+
+    - name: Start Docker
+      systemd:
+        name: docker
+        state: restarted
+
+    when: "InstallDockerCompose == 'yes'"
+  when: "ansible_distribution == 'Debian'"
+
+- block:
+  - block:
+    - name: install docker-compose
+      shell: bash -lc "curl -L https://github.com/docker/compose/releases/download/{{docker_compose_ver}}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose"
+      register: _dl_compose
+
+    - name: give permission
+      shell: bash -lc "chmod +x /usr/local/bin/docker-compose"
+      register: _chmod_compose
+      when: "_dl_compose.rc == 0"
+
+
+    when: "InstallDockerCompose == 'yes'"
+  when: "ansible_distribution == 'CentOS'"
+
+- block:
+  - name: upload test files
+    unarchive:
+      src: /data/playbooks/roles/docker-ce/files/testsite.tar.gz
+      dest: /tmp
+      mode: 0755
+
+  - block:    
+    - name: build single container test
+      shell: bash -lc "cd /tmp/testsite;docker build -t node-hello ."
+      register: _build_result
+
+    - debug: var=_build_result
+
+    - name: run single container test
+      shell: bash -lc "docker run -p 80:80 --name web -d node-hello"
+      register: _run_result
+      when: "_build_result.rc == 0"
+
+    - debug: var=_run_result
+      when: "_build_result.rc == 0"
+
+    - name: Test single site
+      shell: bash -lc "curl http://{{inventory_hostname}}"
+      ignore_errors: True
+      register: _site_access
+      when: "_run_result.rc == 0"
+
+    - debug: var=_site_access.stdout
+      when: "_run_result.rc == 0"
+
+    - name: stop Single site
+      shell: bash -lc "docker stop web"
+      when: "_run_result.rc == 0"
+
+    when: "TestSingleSite =='yes'"
+
+  - block:
+    - name: Run Compose
+      shell: bash -lc "cd /tmp/testsite;docker-compose up -d --build"
+      register: _compose_result
+
+    - debug: var=_compose_result
+    
+    - name: Test multi site
+      shell: bash -lc "curl http://{{inventory_hostname}}"
+      ignore_errors: True
+      when: "_compose_result.rc == 0"
+      register: _compose_site_acess
+
+    - debug: var=_compose_site_acess.stdout
+      when: "_compose_result.rc == 0"
+   
+    - name: Stop Composed site
+      shell: bash -lc "cd /tmp/testsite;docker-compose stop"
+      when: "_compose_result.rc == 0"
+
+    when: "TestComposeSite =='yes'"
+
+  when: "ExecTest == 'yes'"
+
