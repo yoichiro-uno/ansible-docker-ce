@@ -66,10 +66,14 @@
       - software-properties-common   
  
   - block:
-    - name: Add repositories
+    - name: Add repositories jessie
 #      shell: bash -lc 'echo "deb [arch=armhf] https://download.docker.com/linux/debian/dists/jessie/stable/binary-armhf/Packages" | tee /etc/apt/sources.list.d/docker.list'
       shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo raspbian-jessie testing" | tee /etc/apt/sources.list.d/docker.list'
       when: _facts.ansible_facts.ansible_lsb.description | match("jessie")
+
+    - name: Add repositories strech
+      shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo raspbian-strech testing" | tee /etc/apt/sources.list.d/docker.list'
+      when: _facts.ansible_facts.ansible_lsb.description | match("strech")
 
     - name: Check if Docker(RP) is installed
       stat:
