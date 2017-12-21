@@ -85,11 +85,11 @@
       register: _docker_exe
       ignore_errors: True
      
-    - debug: var=_docker_exe     
+#    - debug: var=_docker_exe     
    
     - name: Install Docker(RP)
       shell: bash -lc "curl -sSL https://get.docker.com | sh" 
-      when: "_docker_exe.stat.exists in 'false'"
+      when: "'false' in _docker_exe.stat.exists"
 
 #    when: _facts.ansible_facts.ansible_lsb.description | match("^Raspbian")
     when: "'Raspbian' in _facts.ansible_facts.ansible_lsb.description"
