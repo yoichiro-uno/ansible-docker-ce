@@ -89,7 +89,7 @@
    
     - name: Install Docker(RP)
       shell: bash -lc "curl -sSL https://get.docker.com | sh" 
-      when: "'false' in _docker_exe.stat.exists"
+      when: not _docker_exe.stat.exists
 
 #    when: _facts.ansible_facts.ansible_lsb.description | match("^Raspbian")
     when: "'Raspbian' in _facts.ansible_facts.ansible_lsb.description"
