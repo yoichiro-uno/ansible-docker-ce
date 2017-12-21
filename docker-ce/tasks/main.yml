@@ -6,7 +6,7 @@
 - debug: var=_facts
 
 - block:
-  - name: Install dependencies
+  - name: Install dependencies (CentOS)
     yum:
       name: "{{item}}"
       state: present
@@ -15,28 +15,28 @@
       - device-mapper-persistent-data
       - lvm2
 
-  - name: Add docer-ce repo
+  - name: Add docer-ce repo (CentOS)
     shell: bash -lc "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
     register: _install_docker_repo
 
-  - name: Enable edge and test version
+  - name: Enable edge and test version (CentOS)
     shell: bash -lc "yum-config-manager --enable {{item}}"
     with_items:
       - docker-ce-edge
       - docker-ce-test
     when: _install_docker_repo.rc == 0
 
-  - name: Update OS
+  - name: Update OS (CentOS)
     yum:
       name: "*"
       state: latest
 
-  - name: install docker
+  - name: install docker (CentOS)
     yum:
      name: docker-ce
      state: present
 
-  - name: start docker
+  - name: start docker (CentOS)
     systemd: 
       name: docker
       enabled: yes
@@ -85,21 +85,21 @@
       register: _docker_exe
       ignore_errors: True
      
-#    - debug: var=_docker_exe     
+    - debug: var=_docker_exe     
    
     - name: Install Docker(RP)
       shell: bash -lc "curl -sSL https://get.docker.com | sh" 
-      when: "_docker_exe.stat.exists=='false'"
+      when: _docker_exe.stat.exists == 'false'
 
 #    when: _facts.ansible_facts.ansible_lsb.description | match("^Raspbian")
     when: "'Raspbian' in _facts.ansible_facts.ansible_lsb.description"
       
   - block:
-    - name: Add repositories
+    - name: Add repositories(Debian)
       shell: bash -lc 'echo "deb [arch=armhf] https://download.docker.com/linux/debian \
        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list'
 
-    - name: Install Docker CE
+    - name: Install Docker CE(Debian)
       apt:
         name: docker-ce
         state: latest
