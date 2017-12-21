@@ -75,7 +75,7 @@
       when: "'jessie' in _facts.ansible_facts.ansible_lsb.description"
 
     - name: Add repositories stretch
-      shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo raspbian-stretch testing" | tee /etc/apt/sources.list.d/docker.list'
+      shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo debian-stretch testing" | tee /etc/apt/sources.list.d/docker.list'
 #      when: _facts.ansible_facts.ansible_lsb.description | match("Raspbian GNU/Linux 9.3 (stretch)")
       when: "'stretch' in _facts.ansible_facts.ansible_lsb.description"
       
