@@ -72,8 +72,8 @@
       when: _facts.ansible_facts.ansible_lsb.description | match("jessie")
 
     - name: Add repositories strech
-      shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo raspbian-strech testing" | tee /etc/apt/sources.list.d/docker.list'
-      when: _facts.ansible_facts.ansible_lsb.description | match("strech")
+      shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo raspbian-stretch testing" | tee /etc/apt/sources.list.d/docker.list'
+      when: _facts.ansible_facts.ansible_lsb.description | match("stretch")
 
     - name: Check if Docker(RP) is installed
       stat:
