@@ -115,7 +115,7 @@
   - name: Verify Docker instalation
     shell: bash -lc "docker run hypriot/armhf-hello-world"
     register: _docker_instalation
-
+    when: "ExecTest == 'yes'"
 #  - debug: var=_docker_instalation
 
   - debug: var={{InstallDockerCompose}}
