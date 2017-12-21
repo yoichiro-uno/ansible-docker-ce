@@ -1,6 +1,6 @@
 - name: install docker-ce
   hosts: 
-    - ALL
+    - all
   become: yes
   roles:
     - docker-ce
