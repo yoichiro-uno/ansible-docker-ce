@@ -1,0 +1,3 @@
+access_port: 2375
+access_ip: 0.0.0.0
+access_from: "-H tcp://{{ access_ip }}:{{ access_port }} -H unix://var/run/docker.sock"

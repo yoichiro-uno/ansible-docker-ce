@@ -1,0 +1,22 @@
+- name: Deploy Container
+  docker_container:
+    name: "{{container_name}}"
+    image: "{{container_image}}"
+    pull: true
+    restart_policy: always
+    state: started
+    privileged: yes
+    ports: "{{container_ports}}"
+    command:
+      - /sbin/init
+      - 'sleep infinity'
+
+#- name: instal Python
+#  shell: docker exec -i "{{container_name}}"  /bin/bash -lc "yum update; yum install -y python"
+
+#- name: add container to inventory
+#  add_host:
+#    name: "{{container_name}}"
+#    ansible_connection: docker
+#    ansible_docker_extra_args: "-H=tcp://myserver.net:4243"
+#  changed_when: false

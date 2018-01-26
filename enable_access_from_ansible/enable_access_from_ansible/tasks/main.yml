@@ -1,0 +1,11 @@
+---
+#- name: remove docker-py module before installation
+#  pip:
+#    name: docker-py
+#    state: absent
+#
+- name: install docker-py module
+  yum:
+    name: python-docker-py
+    state: present
+    

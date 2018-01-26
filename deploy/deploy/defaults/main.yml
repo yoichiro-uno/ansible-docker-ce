@@ -1,0 +1,4 @@
+container_name: sample
+container_image: CentOS
+container_ports: 
+  -  8022:22

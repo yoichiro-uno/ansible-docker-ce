@@ -1,0 +1,34 @@
+---
+- name: Test Access to Remote docker
+  shell: /bin/bash -lc "docker -H tcp://{{ inventory_hostname }}:{{ access_port }} ps"
+  ignore_errors: true
+  register: _access_posible
+
+- block:
+  - name: Stop Docker service
+    systemd:
+      name: docker
+      state: stopped
+
+  - name: Customize Service script
+    copy:
+      src: /usr/lib/systemd/system/docker.service
+      dest: /etc/systemd/system/docker.service
+      remote_src: yes
+
+  - name: Edit Service script
+    lineinfile:
+      path: "/etc/systemd/system/docker.service"
+      state: present
+      regexp: "^ExecStart=/usr/bin/dockerd"
+      line: "ExecStart=/usr/bin/dockerd {{ access_from }}"
+
+  - name: ReStart Docker service
+    systemd:
+      name: docker
+      state: started
+      daemon_reload: yes
+
+  - name: Test Access to Remote docker again
+    shell: /bin/bash -lc "docker -H tcp://{{ inventory_hostname }}:{{ access_port }} ps"
+  when: _access_posible|failed

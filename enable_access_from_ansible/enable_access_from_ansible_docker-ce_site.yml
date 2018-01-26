@@ -1,0 +1,6 @@
+- name: Install docker-py
+  hosts: 
+    - all
+  become: yes
+  roles:
+    - enable_access_from_ansible
