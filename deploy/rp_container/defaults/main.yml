@@ -1,0 +1,4 @@
+container_name: sample
+container_image: "resin/raspberry-pi-python:latest"
+container_ports: 
+  -  8022:22

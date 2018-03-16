@@ -1,0 +1,42 @@
+---
+- block:
+  - name: Deploy Container
+    docker_container:
+      name: "{{item.container_name}}"
+      image: "{{item.container_image}}"
+      ports: "{{item.container_ports}}"
+      pull: true
+      restart_policy: always
+      state: started
+      privileged: yes
+      command:
+#        - /sbin/init
+        - 'sleep infinity'
+    with_items: "{{ containersettings }}"
+  when: "need_local_volume != 'yes'"
+
+- block:
+  - name: Create Directories
+    file:
+      path: "{{ item }}"
+      state: directory
+      mode: 0777
+      owner: root
+      group: root
+    with_items: "{{ localvolumes }}"
+
+  - name: Set volumes to container
+    docker_container:
+      name: "{{item.container_name}}"
+      image: "{{item.container_image}}"
+      ports: "{{item.container_ports}}"
+      pull: true
+      restart_policy: always
+      state: started
+      privileged: yes
+      volumes: "{{item.container_volumes}}"
+      command:
+#        - /sbin/init
+        - 'sleep infinity'
+    with_items: "{{ containersettings }}"
+  when: "need_local_volume == 'yes'"

@@ -1,0 +1,6 @@
+---
+- name: Create Docker Container for docker
+  hosts: all
+  become: true
+  roles:
+    - rp_container
