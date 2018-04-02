@@ -1,0 +1,58 @@
+---
+- name: upload test files
+  unarchive:
+    src: /data/playbooks/roles/docker-ce/files/testsite.tar.gz
+    dest: /tmp
+    mode: 0755
+
+- block:    
+  - name: build single container test
+    shell: bash -lc "cd /tmp/testsite;docker build -t node-hello ."
+    register: _build_result
+
+  - debug: var=_build_result
+
+  - name: run single container test
+    shell: bash -lc "docker run -p 80:80 --name web -d node-hello"
+    register: _run_result
+    when: "_build_result.rc == 0"
+
+  - debug: var=_run_result
+    when: "_build_result.rc == 0"
+
+  - name: Test single site
+    shell: bash -lc "curl http://{{inventory_hostname}}"
+    ignore_errors: True
+    register: _site_access
+    when: "_run_result.rc == 0"
+
+  - debug: var=_site_access.stdout
+    when: "_run_result.rc == 0"
+
+  - name: stop Single site
+    shell: bash -lc "docker stop web"
+    when: "_run_result.rc == 0"
+
+  when: "TestSingleSite =='yes'"
+
+- block:
+  - name: Run Compose
+    shell: bash -lc "cd /tmp/testsite;docker-compose up -d --build"
+    register: _compose_result
+
+  - debug: var=_compose_result
+  
+  - name: Test multi site
+    shell: bash -lc "curl http://{{inventory_hostname}}"
+    ignore_errors: True
+    when: "_compose_result.rc == 0"
+    register: _compose_site_acess
+
+  - debug: var=_compose_site_acess.stdout
+    when: "_compose_result.rc == 0"
+  
+  - name: Stop Composed site
+    shell: bash -lc "cd /tmp/testsite;docker-compose stop"
+    when: "_compose_result.rc == 0"
+
+  when: "TestComposeSite =='yes'"

@@ -1,0 +1,35 @@
+---
+- name: Update OS
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: Add Docker's official GPG Key
+  shell: bash -lc "curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -"
+
+- name: Install dependencies
+  apt:
+    name: "{{item}}"
+    state: latest
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl 
+    - gnupg2 
+    - software-properties-common   
+
+- name: Add repositories(Debian)
+  shell: bash -lc 'echo "deb [arch=armhf] https://download.docker.com/linux/debian \
+    $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list'
+
+- name: Install Docker CE(Debian)
+  apt:
+    name: docker-ce
+    state: latest
+
+- name: Start Docker
+  systemd:
+    name: docker
+    state: started
+
