@@ -10,7 +10,6 @@
       state: started
       privileged: yes
       command:
-#        - /sbin/init
         - 'sleep infinity'
     with_items: "{{ containersettings }}"
   when: "need_local_volume != 'yes'"
@@ -36,7 +35,6 @@
       privileged: yes
       volumes: "{{item.container_volumes}}"
       command:
-#        - /sbin/init
         - 'sleep infinity'
     with_items: "{{ containersettings }}"
   when: "need_local_volume == 'yes'"

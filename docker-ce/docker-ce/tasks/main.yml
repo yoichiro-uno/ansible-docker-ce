@@ -69,14 +69,11 @@
     - debug: var=_facts.ansible_facts.ansible_lsb.description
   
     - name: Add repositories jessie
-#      shell: bash -lc 'echo "deb [arch=armhf] https://download.docker.com/linux/debian/dists/jessie/stable/binary-armhf/Packages" | tee /etc/apt/sources.list.d/docker.list'
       shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo raspbian-jessie testing" | tee /etc/apt/sources.list.d/docker.list'
-#      when: _facts.ansible_facts.ansible_lsb.description | match("jessie")
       when: "'jessie' in _facts.ansible_facts.ansible_lsb.description"
 
     - name: Add repositories stretch
       shell: bash -lc 'echo "deb [arch=armhf] https://apt.dockerproject.org/repo debian-stretch testing" | tee /etc/apt/sources.list.d/docker.list'
-#      when: _facts.ansible_facts.ansible_lsb.description | match("Raspbian GNU/Linux 9.3 (stretch)")
       when: "'stretch' in _facts.ansible_facts.ansible_lsb.description"
       
     - name: Check if Docker(RP) is installed
@@ -85,13 +82,10 @@
       register: _docker_exe
       ignore_errors: True
      
-#    - debug: var=_docker_exe     
-   
     - name: Install Docker(RP)
       shell: bash -lc "curl -sSL https://get.docker.com | sh" 
       when: not _docker_exe.stat.exists
 
-#    when: _facts.ansible_facts.ansible_lsb.description | match("^Raspbian")
     when: "'Raspbian' in _facts.ansible_facts.ansible_lsb.description"
       
   - block:
@@ -103,8 +97,6 @@
       apt:
         name: docker-ce
         state: latest
-#      update_cache: yes
-#    when: _facts.ansible_facts.ansible_lsb.description | match("^Debian")
     when: "'Debian' in _facts.ansible_facts.ansible_lsb.description"
 
   - name: Start Docker
@@ -116,39 +108,17 @@
     shell: bash -lc "docker run hypriot/armhf-hello-world"
     register: _docker_instalation
     when: "ExecTest == 'yes'"
-#  - debug: var=_docker_instalation
 
   - debug: var={{InstallDockerCompose}}
 
   - block:
-#    - name: Stop Docker
-#      systemd:
-#        name: docker
-#        state: stopped
-
-#    - name: Check /etc/init.d/docker existance
-#      stat: 
-#        path: /etc/init.d/docker
-#      register: _initfile_exist
-#
-#    - name: Rename to Bak
-#      command: mv /etc/init.d/docker /etc/init.d/docker.bak
-#      when: _initfile_exist.stat.exists
-
     - name: Setup Docker Compose for RP
       shell: bash -lc "curl -sSL https://packagecloud.io/install/repositories/Hypriot/Schatzkiste/script.deb.sh | bash"
 
-#    - name: Install dependencies for Docker Compose
-#      apt:
-#        name: docker-hypriot
-#        state: latest
-#        update_cache: yes
-  
     - name: Install DockerCompose
       apt:
         name: docker-compose
         state: latest
-#        update_cache: yes
 
     - name: Start Docker
       systemd:
