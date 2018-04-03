@@ -34,16 +34,3 @@
     name: docker
     enabled: yes
     state: started
-  
-- block:
-  - name: install docker-compose
-    shell: bash -lc "curl -L https://github.com/docker/compose/releases/download/{{docker_compose_ver}}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose"
-    register: _dl_compose
-
-  - name: give permission
-    shell: bash -lc "chmod +x /usr/local/bin/docker-compose"
-    register: _chmod_compose
-    when: "_dl_compose.rc == 0"
-
-  when: "InstallDockerCompose == 'yes'"
-
