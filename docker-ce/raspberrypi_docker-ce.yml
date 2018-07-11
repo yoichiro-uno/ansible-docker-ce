@@ -1,0 +1,6 @@
+- name: install docker-ce to raspberrypi
+  hosts: 
+    - all
+  become: yes
+  roles:
+    - raspberrypi_docker-ce

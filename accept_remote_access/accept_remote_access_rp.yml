@@ -1,0 +1,6 @@
+---
+- name: Change settings to accept remote access for RaspberryPi Docker
+  hosts: all
+  become: true
+  roles:
+    - accept_remote_access_rp
